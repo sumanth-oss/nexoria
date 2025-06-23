@@ -1,20 +1,18 @@
 import { inngest } from '@/inngest/client';
-import axios from 'axios';
+import { getRuns } from '@/lib/inngest/getRuns'; // new import
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
     const { userInput } = await req.json();
 
-    // Send event to Inngest
     const result = await inngest.send({
       name: 'ai/career.chat',
       data: {
-        userInput: userInput,
+        userInput,
       },
     });
 
-    // Access the runId properly from returned object
     const runId = result.ids?.[0];
     if (!runId) {
       return NextResponse.json(
@@ -36,7 +34,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // wait 500ms before next check
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
@@ -50,17 +47,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-// Get run status from Inngest
-export async function getRuns(runId: string) {
-  const url = `${process.env.INNGEST_SERVER_HOST}/v1/events/${runId}/runs`;
-
-  const response = await axios.get(url, {
-    headers: {
-      Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
-    },
-  });
-
-  return response.data;
 }

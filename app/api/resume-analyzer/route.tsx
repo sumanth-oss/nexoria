@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf';
-import axios from 'axios';
 import { inngest } from '@/inngest/client';
 import { currentUser } from '@clerk/nextjs/server';
+import { getRuns } from '@/lib/inngest/getRuns'; // ✅ IMPORT instead of defining
 
 export async function POST(req: NextRequest) {
   const FormData = await req.formData();
@@ -12,13 +12,11 @@ export async function POST(req: NextRequest) {
 
   const loader = new WebPDFLoader(resumeFile);
   const docs = await loader.load();
-  console.log(docs[0]);
 
   const arrayBuffer = await resumeFile.arrayBuffer();
   const base64 = Buffer.from(arrayBuffer).toString('base64');
 
   try {
-    // Send event to Inngest
     const result = await inngest.send({
       name: 'AiResumeAnalyzer',
       data: {
@@ -31,7 +29,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Access the runId properly from returned object
     const runId = result.ids?.[0];
     if (!runId) {
       return NextResponse.json(
@@ -53,7 +50,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // wait 500ms before next check
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
@@ -67,17 +63,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Get run status from Inngest
-export async function getRuns(runId: string) {
-  const url = `${process.env.INNGEST_SERVER_HOST}/v1/events/${runId}/runs`;
-
-  const response = await axios.get(url, {
-    headers: {
-      Authorization: `Bearer ${process.env.INNGEST_SIGNING_KEY}`,
-    },
-  });
-
-  return response.data;
 }
