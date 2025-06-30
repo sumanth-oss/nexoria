@@ -1,15 +1,17 @@
+/* globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Poppins', sans-serif; /* Changed to Poppins */
 }
 
 ::selection {
   color: #ffff;
-  background: #ff1561;
+  background: #ff1561; /* Consider changing this to an accent color like purple/amber/orange if you want to be consistent */
 }
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -37,7 +39,9 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
+
+    /* Light mode sidebar colors (adjust if you need a light mode for the sidebar) */
+    --sidebar-background: 0 0% 98%; /* Current light gray */
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -45,41 +49,53 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Define your accent colors for light mode if applicable, or just for dark mode below */
+    --amber-500: 39 100% 50%;
+    --purple-500: 270 100% 50%;
+    --orange-500: 27 100% 50%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --background: 240 10% 3.9%; /* A slightly purplish dark background for main content */
+    --foreground: 210 40% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 240 10% 3.9%;
+    --secondary: 240 8% 12%; /* Darker secondary */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 8% 12%;
+    --muted-foreground: 215 20.2% 65.1%; /* Lighter gray for muted */
+    --accent: 240 8% 12%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 240 8% 12%;
+    --input: 240 8% 12%;
+    --ring: 217.2 91.2% 59.8%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* --- YOUR REDESIGNED DARK SIDEBAR COLORS --- */
+    --sidebar-background: 240 10% 5%; /* Very dark gray, almost black, with a slight cool tint */
+    --sidebar-foreground: 210 40% 98%; /* White for general text */
+    --sidebar-primary: 270 100% 50%; /* Vibrant Purple-500 for active link background if needed directly */
+    --sidebar-primary-foreground: 0 0% 100%; /* White for text on primary */
+    --sidebar-accent: 39 100% 50%; /* Vibrant Amber-500 */
+    --sidebar-accent-foreground: 27 100% 50%; /* Vibrant Orange-500 */
+    --sidebar-border: 240 5% 15%; /* Darker, subtle border */
+    --sidebar-ring: 270 100% 60%; /* Purple ring */
+
+    /* Define your custom accent colors explicitly as CSS variables */
+    --amber-500: 39 100% 50%; /* Example: For a bright, clear amber */
+    --purple-500: 270 100% 50%; /* Example: For a vibrant, deep purple */
+    --orange-500: 27 100% 50%; /* Example: For a rich orange */
   }
 }
 
@@ -93,6 +109,9 @@ body {
   }
 }
 
+/* Make sure this is only defined once and correct, or delete it */
+/* This block is a duplicate and should be removed if the one above is correct */
+/*
 @layer base {
   :root {
     --sidebar-background: 0 0% 98%;
@@ -116,25 +135,86 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
-
+*/
 /* Add this to your global CSS file or create a separate CSS module */
 .react-flow__controls {
-  background: white !important;
-  border: 1px solid #e9d5ff !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  background: hsl(
+    var(--sidebar-background)
+  ) !important; /* Use sidebar background variable */
+  border: 1px solid hsl(var(--sidebar-border)) !important; /* Use sidebar border variable */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important; /* Darker shadow */
+  color: hsl(var(--sidebar-foreground)) !important; /* Ensure text is visible */
 }
 
 .react-flow__controls-button {
-  background: white !important;
-  color: #39194f !important;
-  border-bottom: 1px solid #e9d5ff !important;
+  background: hsl(
+    var(--sidebar-background)
+  ) !important; /* Use sidebar background */
+  color: hsl(var(--sidebar-foreground)) !important; /* Use sidebar foreground */
+  border-bottom: 1px solid hsl(var(--sidebar-border)) !important; /* Use sidebar border */
 }
 
 .react-flow__controls-button:hover {
-  background: #e9d5ff !important;
+  background: hsl(
+    var(--sidebar-accent)
+  ) !important; /* Use a vibrant accent color on hover */
+  color: hsl(
+    var(--sidebar-accent-foreground)
+  ) !important; /* Adjust text color on hover */
 }
 
 .react-flow__minimap {
-  background: white !important;
-  border: 1px solid #e9d5ff !important;
+  background: hsl(
+    var(--sidebar-background)
+  ) !important; /* Use sidebar background */
+  border: 1px solid hsl(var(--sidebar-border)) !important; /* Use sidebar border */
+}
+/* globals.css or a dedicated CSS file */
+
+/* Ensure text color is inherited or set for markdown */
+.markdown-content-container p {
+  margin-bottom: 0.5em; /* Space between paragraphs */
+}
+
+.markdown-content-container ul,
+.markdown-content-container ol {
+  list-style-position: inside; /* Keeps bullet/number inside content area */
+  margin-left: 1.5em; /* Indent lists */
+  margin-bottom: 0.5em;
+}
+
+.markdown-content-container li {
+  margin-bottom: 0.25em; /* Space between list items */
+  padding-left: 0.5em; /* Give a little space after the bullet */
+}
+
+.markdown-content-container h1,
+.markdown-content-container h2,
+.markdown-content-container h3,
+.markdown-content-container h4,
+.markdown-content-container h5,
+.markdown-content-container h6 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: bold; /* Make headings bold */
+}
+
+.markdown-content-container strong {
+  font-weight: bold;
+}
+
+/* For code blocks (if your AI generates them) */
+.markdown-content-container pre {
+  background-color: #2d2d2d; /* Dark background for code */
+  color: #f8f8f2; /* Light text for code */
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+}
+
+.markdown-content-container code {
+  font-family: monospace;
+  background-color: #3d3d3d; /* Lighter background for inline code */
+  padding: 0.2em 0.4em;
+  border-radius: 0.3em;
 }

@@ -41,7 +41,6 @@ function RoadMapGeneratorDialog({
         userInput: userInput.trim(),
       });
 
-      console.log(result.data);
       setLoading(false);
       router.push(`/tools/roadmap-generator/${roadMapId}`);
       setOpenRoadMapDialog(false);
@@ -59,22 +58,22 @@ function RoadMapGeneratorDialog({
 
   return (
     <Dialog open={openRoadMapDialog} onOpenChange={setOpenRoadMapDialog}>
-      <DialogContent className="border-[#39194f]/20 max-w-md">
+      <DialogContent className="border-gray-800 bg-gray-950 text-gray-100 max-w-md">
         <DialogHeader className="text-center space-y-3">
-          <DialogTitle className="text-[#23003c] text-lg font-bold">
+          <DialogTitle className="text-white text-lg font-bold">
             Generate Career Roadmap
           </DialogTitle>
           <DialogDescription asChild>
             <div className="space-y-4">
-              <div className="flex flex-col items-center justify-center p-8 rounded-lg">
-                <span className="text-sm text-[#23003c] mb-4 font-semibold">
+              <div className="flex flex-col items-center justify-center p-8 rounded-lg bg-gray-900 border border-gray-800">
+                <span className="text-sm text-gray-300 mb-4 font-semibold">
                   Enter your target position or skills
                 </span>
                 <Input
                   placeholder="e.g. Cyber Security Analyst"
                   value={userInput}
                   onChange={handleInputChange}
-                  className="border-[#39194f]/20 focus:border-[#39194f] text-[#23003c]"
+                  className="border-gray-700 focus:border-amber-500 text-white bg-gray-800 placeholder-gray-400"
                 />
               </div>
             </div>
@@ -84,14 +83,14 @@ function RoadMapGeneratorDialog({
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="border-[#39194f]/20 text-[#23003c] hover:bg-[#39194f]/5"
+            className="border-gray-700 bg-gray-300 text-gray-900  hover:bg-gray-800 hover:text-white"
           >
             Cancel
           </Button>
           <Button
             onClick={handleGenerateRoadmap}
             disabled={!userInput.trim() || loading}
-            className="bg-[#39194f] hover:bg-[#23003c] text-white"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-gray-950 font-semibold"
           >
             {loading ? (
               <>

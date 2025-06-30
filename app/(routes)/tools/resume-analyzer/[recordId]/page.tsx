@@ -40,7 +40,6 @@ function ResumeAnalyzer() {
       if (result.data) {
         setPdfUrl(result.data.metaData);
         setReport(result.data.content);
-        console.log('Report Data in JSON', result.data.content);
       }
     } catch (error) {
       console.error('Error fetching resume analysis:', error);
@@ -48,15 +47,15 @@ function ResumeAnalyzer() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-[#84cc16]';
-    if (score >= 60) return 'text-[#f59e0b]';
-    return 'text-[#ef4444]';
+    if (score >= 80) return 'text-green-400'; // Adjusted for dark background
+    if (score >= 60) return 'text-amber-400'; // Adjusted for dark background
+    return 'text-red-400'; // Adjusted for dark background
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 80) return 'bg-[#f7fee7]';
-    if (score >= 60) return 'bg-[#fef3c7]';
-    return 'bg-[#fee2e2]';
+    if (score >= 80) return 'bg-green-900'; // Darker background for good score
+    if (score >= 60) return 'bg-amber-900'; // Darker background for medium score
+    return 'bg-red-900'; // Darker background for low score
   };
 
   // Component for collapsible sections
@@ -67,7 +66,6 @@ function ResumeAnalyzer() {
     isOpen,
     onToggle,
     dotColor,
-    bgColor = 'bg-[#f8f4ff]',
   }: {
     title: string;
     icon: any;
@@ -75,21 +73,20 @@ function ResumeAnalyzer() {
     isOpen: boolean;
     onToggle: () => void;
     dotColor: string;
-    bgColor?: string;
   }) => (
-    <div className={`${bgColor} rounded-lg border border-[#39194f]/10`}>
+    <div className="bg-gray-900 rounded-lg border border-gray-800">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-black/5 transition-colors rounded-lg"
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-800 transition-colors rounded-lg"
       >
-        <h3 className="font-medium text-[#23003c] flex items-center gap-2">
+        <h3 className="font-medium text-white flex items-center gap-2">
           <Icon className="w-4 h-4" style={{ color: dotColor }} />
           {title}
         </h3>
         {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-[#23003c]/60" />
+          <ChevronUp className="w-4 h-4 text-gray-400" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-[#23003c]/60" />
+          <ChevronDown className="w-4 h-4 text-gray-400" />
         )}
       </button>
       {isOpen && (
@@ -100,7 +97,7 @@ function ResumeAnalyzer() {
                 className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
                 style={{ backgroundColor: dotColor }}
               />
-              <span className="text-[#23003c]/80">{item}</span>
+              <span className="text-gray-300">{item}</span> {/* Lighter text */}
             </div>
           ))}
         </div>
@@ -109,26 +106,32 @@ function ResumeAnalyzer() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f3e8ff] p-4">
+    <div className="min-h-screen bg-gray-950 p-4">
+      {' '}
+      {/* Dark main background */}
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-5 grid-cols-1 gap-6">
           {/* Report Section */}
           <div className="col-span-2 space-y-4">
-            <div className="bg-white rounded-lg shadow-sm border border-[#39194f]/10 p-6">
+            <div className="bg-gray-900 rounded-lg shadow-sm border border-gray-800 p-6">
+              {' '}
+              {/* Dark background, gray border */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-semibold text-xl text-[#23003c] flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
+                <h2 className="font-semibold text-xl text-white flex items-center gap-2">
+                  {' '}
+                  {/* White text */}
+                  <FileText className="w-5 h-5 text-amber-400" />{' '}
+                  {/* Amber icon */}
                   Resume Analysis Report
                 </h2>
                 <button
                   onClick={() => setOpenResumeDialog(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#39194f] to-[#5b2a7a] text-white text-sm font-medium rounded-lg hover:from-[#2d1340] hover:to-[#4a2366] transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-gray-950 text-sm font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
                 >
                   <SparklesIcon className="w-4 h-4" />
                   Re Analyze
                 </button>
               </div>
-
               {report && (
                 <div className="space-y-6">
                   {/* Overall Score */}
@@ -146,7 +149,9 @@ function ResumeAnalyzer() {
                         {report.overall_score}
                       </span>
                     </div>
-                    <p className="text-sm text-[#23003c]/70 mb-4">
+                    <p className="text-gray-400 text-sm mb-4">
+                      {' '}
+                      {/* Lighter gray text */}
                       Overall Score
                     </p>
 
@@ -170,7 +175,9 @@ function ResumeAnalyzer() {
                                     {data.score}
                                   </span>
                                 </div>
-                                <p className="text-xs text-[#23003c]/60 capitalize">
+                                <p className="text-xs text-gray-400 capitalize">
+                                  {' '}
+                                  {/* Lighter gray text */}
                                   {section.replace('_', ' ')}
                                 </p>
                               </div>
@@ -181,9 +188,16 @@ function ResumeAnalyzer() {
                   </div>
 
                   {/* Summary */}
-                  <div className="bg-[#f8f4ff] rounded-lg p-4 border border-[#39194f]/10">
-                    <h3 className="font-medium text-[#23003c] mb-2">Summary</h3>
-                    <p className="text-sm text-[#23003c]/80 leading-relaxed">
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    {' '}
+                    {/* Dark background, gray border */}
+                    <h3 className="font-medium text-white mb-2">
+                      Summary
+                    </h3>{' '}
+                    {/* White text */}
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      {' '}
+                      {/* Lighter text */}
                       {report.summary_comment}
                     </p>
                   </div>
@@ -197,8 +211,7 @@ function ResumeAnalyzer() {
                       items={report.whats_good}
                       isOpen={isStrengthsOpen}
                       onToggle={() => setIsStrengthsOpen(!isStrengthsOpen)}
-                      dotColor="#16a34a"
-                      bgColor="bg-[#f8f4ff]"
+                      dotColor="#4ade80" // Green for strengths, adjusted for dark background
                     />
 
                     {/* Areas to Improve */}
@@ -210,8 +223,7 @@ function ResumeAnalyzer() {
                       onToggle={() =>
                         setIsImprovementsOpen(!isImprovementsOpen)
                       }
-                      dotColor="#d97706"
-                      bgColor="bg-[#fdf2f8]"
+                      dotColor="#fbbf24" // Amber for improvements, adjusted for dark background
                     />
 
                     {/* Improvement Tips */}
@@ -221,17 +233,17 @@ function ResumeAnalyzer() {
                       items={report.tips_for_improvement}
                       isOpen={isTipsOpen}
                       onToggle={() => setIsTipsOpen(!isTipsOpen)}
-                      dotColor="#39194f"
-                      bgColor="bg-[#f0f9ff]"
+                      dotColor="#f97316" // Orange for tips, adjusted for dark background
                     />
                   </div>
                 </div>
               )}
-
               {!report && (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#39194f] mx-auto mb-4"></div>
-                  <p className="text-[#23003c]/60">Loading analysis...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>{' '}
+                  {/* Amber spinner */}
+                  <p className="text-gray-400">Loading analysis...</p>{' '}
+                  {/* Lighter gray text */}
                 </div>
               )}
             </div>
@@ -239,15 +251,21 @@ function ResumeAnalyzer() {
 
           {/* PDF Preview Section */}
           <div className="col-span-3">
-            <div className="bg-white rounded-lg shadow-sm border border-[#39194f]/10 p-6">
+            <div className="bg-gray-900 rounded-lg shadow-sm border border-gray-800 p-6">
+              {' '}
+              {/* Dark background, gray border */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-xl text-[#23003c]">
+                <h2 className="font-semibold text-xl text-white">
+                  {' '}
+                  {/* White text */}
                   Resume Preview
                 </h2>
                 {report && <DownloadReport report={report} />}
               </div>
               {pdfUrl ? (
-                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                <div className="bg-gray-800 rounded-lg overflow-hidden">
+                  {' '}
+                  {/* Darker background for iframe container */}
                   <iframe
                     src={pdfUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
                     width="100%"
@@ -257,10 +275,14 @@ function ResumeAnalyzer() {
                   />
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-lg h-[800px] flex items-center justify-center">
+                <div className="bg-gray-800 rounded-lg h-[800px] flex items-center justify-center">
+                  {' '}
+                  {/* Darker background for loader */}
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#39194f] mx-auto mb-4"></div>
-                    <p className="text-[#23003c]/60">Loading resume...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>{' '}
+                    {/* Amber spinner */}
+                    <p className="text-gray-400">Loading resume...</p>{' '}
+                    {/* Lighter gray text */}
                   </div>
                 </div>
               )}

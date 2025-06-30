@@ -14,7 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+// ✅ Fix: Move themeColor here
+export const viewport = {
+  themeColor: '#ffffff',
+};
+
+// ✅ Fix: Add metadataBase
 export const metadata: Metadata = {
+  metadataBase: new URL('https://nexoriapp.vercel.app'),
   title: 'Nexoria – Your AI-Powered Career Mentor',
   description:
     'Nexoria is an AI-powered career guide helping you discover the best learning paths, skills, and opportunities tailored to your goals. Build a smarter future with personalized guidance.',
@@ -29,7 +36,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Nexoria Team', url: 'https://nexoriapp.vercel.app' }],
   creator: 'Nexoria',
-  themeColor: '#ffffff',
   openGraph: {
     title: 'Nexoria – Your AI-Powered Career Mentor',
     description:

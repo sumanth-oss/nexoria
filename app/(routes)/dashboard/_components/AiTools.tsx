@@ -1,4 +1,3 @@
-// AiTools.tsx
 'use client';
 import React from 'react';
 import { MessageCircle, FileText, Map, Mail } from 'lucide-react';
@@ -7,7 +6,7 @@ import AiToolCard from './AiToolCard';
 export interface AiTool {
   name: string;
   des: string;
-  icon: React.ComponentType<any>; // Changed to React component
+  icon: React.ComponentType<any>;
   button: string;
   path: string;
 }
@@ -16,28 +15,28 @@ export const aiToolsList: AiTool[] = [
   {
     name: 'AI Career Q&A Chat',
     des: 'Get instant answers to your career questions with our intelligent AI assistant',
-    icon: MessageCircle, // Chat icon
+    icon: MessageCircle,
     button: "Let's Chat",
     path: '/tools/chat',
   },
   {
     name: 'AI Resume Analyzer',
     des: 'Optimize your resume with AI-powered insights and recommendations',
-    icon: FileText, // Document icon
+    icon: FileText,
     button: 'Analyze Now',
     path: '/tools/resume-analyzer',
   },
   {
     name: 'Career Roadmap Generator',
     des: 'Create a personalized career path tailored to your goals and skills',
-    icon: Map, // Roadmap icon
+    icon: Map,
     button: 'Generate Now',
     path: '/tools/roadmap-generator',
   },
   {
     name: 'Cover Letter Generator',
     des: 'Craft compelling cover letters that make you stand out to employers',
-    icon: Mail, // Cover letter icon
+    icon: Mail,
     button: 'Create Now',
     path: '/tools/cover-letter',
   },
@@ -45,12 +44,12 @@ export const aiToolsList: AiTool[] = [
 
 function AiTools() {
   return (
-    <div className="mt-8 p-8 bg-white border border-gray-100 rounded-xl">
+    <div className="mt-8 p-8 bg-gray-950 border border-gray-800 rounded-xl text-gray-100">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+        <h2 className="text-2xl font-bold text-white mb-3">
           Our AI-Powered Tools
         </h2>
-        <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">
+        <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
           Accelerate your career growth with our comprehensive suite of AI tools
           designed to help you succeed in today's competitive job market.
         </p>

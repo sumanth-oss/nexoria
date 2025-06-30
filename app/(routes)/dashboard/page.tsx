@@ -5,7 +5,7 @@ import History from './_components/History';
 
 function Dashboard() {
   return (
-    <div>
+    <div className="p-8 bg-gradient-to-br from-gray-950 to-black min-h-screen text-gray-100">
       <WelcomeBanner />
       <AiTools />
       <History />

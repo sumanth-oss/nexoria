@@ -6,7 +6,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { File, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,7 @@ function ResumeUploadDialog({
 
       // Send formData to backend server
       const result = await axios.post('/api/resume-analyzer', formData);
-      console.log(result);
+
       setLoading(false);
       router.push('/tools/resume-analyzer' + '/' + recordId);
       setOpenResumeDialog(false);
@@ -65,19 +64,19 @@ function ResumeUploadDialog({
 
   return (
     <Dialog open={openResumeDialog} onOpenChange={setOpenResumeDialog}>
-      <DialogContent className=" border-[#39194f]/20 max-w-md">
+      <DialogContent className="border-gray-800 bg-gray-950 text-gray-100 max-w-md">
         <DialogHeader className="text-center space-y-3">
-          <DialogTitle className="text-[#23003c] text-lg font-medium">
+          <DialogTitle className="text-white text-lg font-bold">
             Upload Resume
           </DialogTitle>
           <DialogDescription asChild>
             <div>
               <label
                 htmlFor="resumeUpload"
-                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#39194f]/30 rounded-lg cursor-pointer hover:border-[#39194f]/50 transition-colors group"
+                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-700 rounded-lg cursor-pointer hover:border-amber-500 transition-colors group bg-gray-900"
               >
-                <File className="h-8 w-8 text-[#39194f]/60 group-hover:text-[#39194f] transition-colors" />
-                <span className="mt-2 text-sm text-[#23003c]/70">
+                <File className="h-8 w-8 text-gray-400 group-hover:text-amber-300 transition-colors" />
+                <span className="mt-2 text-sm text-gray-300">
                   {!file ? 'Click to upload PDF' : file.name}
                 </span>
               </label>
@@ -95,14 +94,14 @@ function ResumeUploadDialog({
           <Button
             onClick={handleCancel}
             variant="outline"
-            className="border-[#39194f]/20 text-[#23003c] hover:bg-[#39194f]/5"
+            className="border-gray-700 bg-gray-300 text-gray-900  hover:bg-gray-800 hover:text-white"
           >
             Cancel
           </Button>
           <Button
             onClick={handleUploadAndAnalyze}
             disabled={!file || loading}
-            className="bg-[#39194f] hover:bg-[#23003c] text-white"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-gray-950 font-semibold"
           >
             {loading ? (
               <>

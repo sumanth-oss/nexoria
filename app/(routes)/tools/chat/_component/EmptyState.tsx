@@ -7,27 +7,28 @@ const questionList = [
 
 function EmptyState({ selctedQuestion }: any) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 py-12">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 py-12 bg-gray-950 rounded-xl">
+      {' '}
+      {/* Dark background for EmptyState */}
       <div className="text-center mb-12">
-        <p className="text-gray-600 text-lg max-w-md mx-auto">
+        <p className="text-gray-300 text-lg max-w-md mx-auto">
           Get personalized guidance for your career journey
         </p>
       </div>
-
       <div className="flex flex-col gap-3 w-full max-w-2xl">
         {questionList.map((ques, index) => (
           <button
             key={index}
             onClick={() => selctedQuestion(ques)}
-            className="group px-6 py-4 text-left rounded-xl bg-white 
-                     border-2 border-gray-200 
-                     hover:border-[#23003c] hover:bg-[#23003c] 
-                     transition-all duration-200 ease-in-out
-                     shadow-sm hover:shadow-md"
+            className="group px-6 py-4 text-left rounded-xl bg-gray-900 // Dark background for buttons
+                       border-2 border-gray-800 // Darker 
+                       hover:border-amber-500 hover:bg-gradient-to-r from-amber-500 to-orange-500 // Amber/Orange hover
+                       transition-all duration-200 ease-in-out
+                       shadow-sm hover:shadow-md"
           >
             <span
-              className="text-gray-700 group-hover:text-[#f3e8ff] 
-                           font-medium transition-colors duration-200"
+              className="text-gray-100 group-hover:text-gray-950 // Text becomes dark on amber/orange hover
+                         font-medium transition-colors duration-200"
             >
               {ques}
             </span>

@@ -22,7 +22,6 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
 
   useEffect(() => {
     if (initialNodes && initialEdges) {
-      // Minimal spacing adjustment since AI will generate better positions
       const spacedNodes = initialNodes.map((node: any) => ({
         ...node,
         position: {
@@ -40,7 +39,7 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
   return (
     <div
       style={{ width: '100%', height: '100%' }}
-      className="rounded-xl overflow-hidden bg-amber-100"
+      className="rounded-xl overflow-hidden bg-gray-800"
     >
       <ReactFlow
         nodes={nodes}
@@ -50,12 +49,12 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
         nodeTypes={nodeTypes}
         defaultEdgeOptions={{
           style: {
-            stroke: '#39194f',
+            stroke: '#fbbf24',
             strokeWidth: 2,
           },
           type: 'smoothstep',
         }}
-        className="bg-white"
+        className="bg-gray-900"
         fitView
         nodesDraggable={false}
         nodesConnectable={false}
@@ -64,22 +63,24 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
         zoomOnScroll={true}
         zoomOnPinch={true}
         panOnScroll={false}
+        // Ensure nodes are focusable to allow interaction if needed
+        nodesFocusable={true} // Add this if it's not implicitly true
       >
         <Controls
-          className="!bg-white !border-[#e9d5ff] !shadow-lg"
+          className="!bg-gray-800 !border-gray-700 !shadow-lg [&>button]:!text-gray-300 [&>button:hover]:!bg-gray-700 [&>button:hover]:!text-amber-400"
           showZoom={true}
           showFitView={true}
           showInteractive={false}
         />
         <MiniMap
-          className="!bg-white !border-[#e9d5ff] !shadow-lg"
-          nodeColor={(node) => '#39194f'}
-          maskColor="rgba(57, 25, 79, 0.1)"
+          className="!bg-gray-800 !border-gray-700 !shadow-lg"
+          nodeColor={(node) => '#fbbf24'}
+          maskColor="rgba(0, 0, 0, 0.5)"
           pannable={false}
           zoomable={false}
         />
         {/* @ts-ignore */}
-        <Background variant="dots" gap={20} size={5} color="#fde68a" />
+        <Background variant="dots" gap={20} size={2} color="#4b5563" />
       </ReactFlow>
     </div>
   );
