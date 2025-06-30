@@ -21,7 +21,7 @@ export const viewport = {
 
 // ✅ Fix: Add metadataBase
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nexoriapp.vercel.app'),
+  metadataBase: new URL('https://nexoridev.vercel.app'),
   title: 'Nexoria – Your AI-Powered Career Mentor',
   description:
     'Nexoria is an AI-powered career guide helping you discover the best learning paths, skills, and opportunities tailored to your goals. Build a smarter future with personalized guidance.',
@@ -34,13 +34,16 @@ export const metadata: Metadata = {
     'AI education',
     'career growth',
   ],
-  authors: [{ name: 'Nexoria Team', url: 'https://nexoriapp.vercel.app' }],
+  authors: [{ name: 'Nexoria Team', url: 'https://nexoridev.vercel.app' }],
+  icons: {
+    icon: '/favicon.png',
+  },
   creator: 'Nexoria',
   openGraph: {
     title: 'Nexoria – Your AI-Powered Career Mentor',
     description:
       'Discover personalized learning paths and job guidance with Nexoria – the AI-driven platform built to empower your future.',
-    url: 'https://nexoriapp.vercel.app',
+    url: 'https://nexoridev.vercel.app',
     siteName: 'Nexoria',
     images: [
       {

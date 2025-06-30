@@ -1,3 +1,4 @@
+// app/dashboard/_components/AiTools.tsx
 'use client';
 import React from 'react';
 import { MessageCircle, FileText, Map, Mail } from 'lucide-react';
@@ -44,18 +45,24 @@ export const aiToolsList: AiTool[] = [
 
 function AiTools() {
   return (
-    <div className="mt-8 p-8 bg-gray-950 border border-gray-800 rounded-xl text-gray-100">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-3">
+    // Adjusted padding for smaller screens
+    <div className="mt-6 sm:mt-8 p-4 sm:p-6 md:p-8 bg-gray-950 border border-gray-800 rounded-xl text-gray-100">
+      <div className="mb-6 sm:mb-8">
+        {' '}
+        {/* Adjusted margin-bottom */}
+        {/* Heading adjustments */}
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">
           Our AI-Powered Tools
         </h2>
-        <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
+        {/* Paragraph adjustments */}
+        <p className="text-sm sm:text-base lg:text-lg text-gray-300 leading-relaxed max-w-2xl">
           Accelerate your career growth with our comprehensive suite of AI tools
           designed to help you succeed in today's competitive job market.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Grid adjustments: 1 column on mobile, 2 on md, 3 on lg, 4 on xl */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {aiToolsList.map((tool, index) => (
           <AiToolCard tool={tool} key={index} />
         ))}
