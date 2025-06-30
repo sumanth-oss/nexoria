@@ -38,7 +38,7 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
 
   return (
     <div
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%' }} // Stays 100% of parent's responsive height
       className="rounded-xl overflow-hidden bg-gray-800"
     >
       <ReactFlow
@@ -63,8 +63,7 @@ function RoadMapCanvas({ initialNodes, initialEdges }: any) {
         zoomOnScroll={true}
         zoomOnPinch={true}
         panOnScroll={false}
-        // Ensure nodes are focusable to allow interaction if needed
-        nodesFocusable={true} // Add this if it's not implicitly true
+        nodesFocusable={true}
       >
         <Controls
           className="!bg-gray-800 !border-gray-700 !shadow-lg [&>button]:!text-gray-300 [&>button:hover]:!bg-gray-700 [&>button:hover]:!text-amber-400"

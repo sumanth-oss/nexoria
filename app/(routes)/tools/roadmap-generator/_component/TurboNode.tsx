@@ -4,27 +4,32 @@ import React from 'react';
 
 function TurboNode({ data }: any) {
   return (
-    // Add position relative and z-index to the node wrapper
-    <div className="rounded-xl border-2 border-gray-700 bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 w-72 group hover:border-amber-500 relative z-10">
-      <div className="p-4">
-        <h3 className="font-bold text-lg text-white mb-3 group-hover:text-amber-400 transition-colors">
+    <div className="rounded-xl border-2 border-gray-700 bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 w-64 sm:w-72 group hover:border-amber-500 relative z-10">
+      {' '}
+      {/* Responsive width */}
+      <div className="p-3 sm:p-4">
+        {' '}
+        {/* Responsive padding */}
+        <h3 className="font-bold text-base sm:text-lg text-white mb-2 sm:mb-3 group-hover:text-amber-400 transition-colors">
+          {' '}
+          {/* Responsive text size, margin */}
           {data.title}
         </h3>
-
-        <p className="text-sm text-gray-300 mb-4 line-clamp-3 leading-relaxed">
+        <p className="text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
+          {' '}
+          {/* Responsive text size, margin */}
           {data.description}
         </p>
-
         {data?.link && (
           <a
-            className="inline-flex items-center text-amber-400 hover:text-amber-500 font-medium text-sm border border-amber-400 hover:border-amber-500 bg-gray-900 hover:bg-gray-700 px-3 py-2 rounded-lg transition-all duration-200 relative z-20" // Higher z-index for the link
+            className="inline-flex items-center text-amber-400 hover:text-amber-500 font-medium text-xs sm:text-sm border border-amber-400 hover:border-amber-500 bg-gray-900 hover:bg-gray-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg transition-all duration-200 relative z-20" // Responsive padding, text size
             href={data.link}
             target="_blank"
             rel="noopener noreferrer"
           >
             Learn More
             <svg
-              className="ml-1 w-4 h-4"
+              className="ml-1 w-3 h-3 sm:w-4 sm:h-4" // Responsive icon size
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -38,7 +43,6 @@ function TurboNode({ data }: any) {
             </svg>
           </a>
         )}
-
         <Handle
           type="target"
           position={Position.Top}
