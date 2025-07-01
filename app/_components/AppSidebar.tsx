@@ -80,15 +80,17 @@ export function AppSidebar() {
             >
               <Sparkles className="w-5 h-5 text-amber-300" />
             </div>
-            <h2
-              className="
+            <Link href="/">
+              <h2
+                className="
                 text-3xl font-extrabold
                 bg-gradient-to-r from-purple-500 via-amber-500 to-orange-500 // Using the new accent colors
                 bg-clip-text text-transparent
               "
-            >
-              Nexoria
-            </h2>
+              >
+                Nexoria
+              </h2>
+            </Link>
           </div>
           <p className="text-sm text-gray-400 ml-11 tracking-wide">
             AI Career Guidance
