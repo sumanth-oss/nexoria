@@ -10,13 +10,14 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 429) {
+    const status = error.response?.status;
+    if (status === 429) {
       return Promise.reject(new Error('Rate limit exceeded. Please try again later.'));
     }
-    if (error.response?.status === 401) {
+    if (status === 401) {
       return Promise.reject(new Error('Authentication required. Please sign in.'));
     }
-    if (error.response?.status >= 500) {
+    if (status && status >= 500) {
       return Promise.reject(new Error('Server error. Please try again later.'));
     }
     return Promise.reject(error);
