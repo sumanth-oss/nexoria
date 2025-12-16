@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User email required' }, { status: 401 });
     }
 
-    // ✅ ensure FK user exists
     const existingUser = await db
       .select()
       .from(usersTable)
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ placeholder insert
     await db.insert(HistoryTable).values({
       recordId,
       content: {},

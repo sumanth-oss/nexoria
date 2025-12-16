@@ -1,4 +1,3 @@
-// inngest/functions.ts
 import { inngest } from './client';
 import ImageKit from 'imagekit';
 import { db } from '@/configs/db';
@@ -16,10 +15,6 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_ENDPOINT_URL || '',
 });
 
-/* ---------------- CHAT ---------------- */
-
-
-
 export const aiCareerChat = inngest.createFunction(
   { id: 'ai-career-chat', name: 'AI Career Chat' },
   { event: 'ai/career.chat' },
@@ -35,7 +30,6 @@ export const aiCareerChat = inngest.createFunction(
         ? textMsg.content
         : textMsg?.content?.map(c => c.text).join(' ') ?? '';
 
-    // 🔹 1. Get existing chat
     const existing = await db
       .select()
       .from(HistoryTable)
@@ -46,15 +40,12 @@ export const aiCareerChat = inngest.createFunction(
       ? existing[0].content
       : [];
 
-    // 🔹 2. Append assistant message
     const updatedMessages = [
   ...previousMessages,
   { content: userInput, role: 'user', type: 'text' },
   { content, role: 'assistant', type: 'text' },
 ];
 
-
-    // 🔹 3. Update row (NOT insert)
     await step.run('save-chat-message', () =>
       db
         .update(HistoryTable)
@@ -66,40 +57,72 @@ export const aiCareerChat = inngest.createFunction(
   }
 );
 
-
-
-/* ---------------- RESUME ANALYZER ---------------- */
-
 export const AiResumeAnalyzer = inngest.createFunction(
-  { id: 'AiResumeAnalyzer' },
+  { id: 'AiResumeAnalyzer', retries: 3 },
   { event: 'AiResumeAnalyzer' },
   async ({ event, step }) => {
     const { recordId, base64ResumeFile, pdfText, aiAgentType, userEmail } =
       event.data;
 
     const uploadUrl = await step.run('upload-resume', async () => {
-      const file = await imagekit.upload({
-        file: base64ResumeFile,
-        fileName: `${recordId}.pdf`,
-      });
-      return file.url;
+      try {
+        if (!process.env.IMAGEKIT_PUBLIC_KEY || !process.env.IMAGEKIT_PRIVATE_KEY) {
+          console.warn('ImageKit credentials missing, skipping upload');
+          return null;
+        }
+        const file = await imagekit.upload({
+          file: base64ResumeFile,
+          fileName: `${recordId}.pdf`,
+          isPublished: true,
+        });
+        return file.url;
+      } catch (error) {
+        console.error('ImageKit upload failed:', error);
+        return null;
+      }
     });
 
-        const agentResult = await AiResumeAgent.run(pdfText);
-
+    if (!pdfText?.trim()) {
+      throw new Error('PDF text is empty or invalid');
+    }
+    const agentResult = await AiResumeAgent.run(pdfText);
 
     const textMsg = agentResult.output?.find(m => m.type === 'text');
-    if (!textMsg) throw new Error('Invalid AI output');
+    if (!textMsg) {
+      throw new Error('No text message found in AI output');
+    }
 
-    // ✅ SAFE CONTENT NORMALIZATION
-    const rawText =
-      typeof textMsg.content === 'string'
-        ? textMsg.content
-        : textMsg.content.map(c => c.text).join('');
+    let rawText = '';
+    if (typeof textMsg.content === 'string') {
+      rawText = textMsg.content;
+    } else if (Array.isArray(textMsg.content)) {
+      rawText = textMsg.content
+        .map((c: any) => (typeof c === 'string' ? c : c?.text || ''))
+        .join('');
+    } else {
+      throw new Error('Invalid content format in AI response');
+    }
 
-    const json = JSON.parse(
-      rawText.replace(/```json|```/g, '').trim()
-    );
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    if (!cleaned) {
+      throw new Error('Empty response after cleaning');
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error('JSON parse error. Raw text:', cleaned.substring(0, 500));
+      throw new Error(
+        `Failed to parse JSON: ${
+          parseError instanceof Error ? parseError.message : 'Unknown error'
+        }`
+      );
+    }
+
+    if (!json.overall_score && typeof json.overall_score !== 'number') {
+      throw new Error('Invalid JSON structure: missing overall_score');
+    }
 
     await step.run('save-result', async () => {
       await db
@@ -113,10 +136,10 @@ export const AiResumeAnalyzer = inngest.createFunction(
         })
         .where(eq(HistoryTable.recordId, recordId));
     });
+
+    return { success: true, recordId };
   }
 );
-
-/* ---------------- ROADMAP ---------------- */
 
 export const AiRoadMapInngestFunction = inngest.createFunction(
   { id: 'AiRoadMapAgent' },
@@ -125,9 +148,6 @@ export const AiRoadMapInngestFunction = inngest.createFunction(
     const { roadMapId, userInput, userEmail } = event.data;
 
    const agentResult = await AiRoadMapAgent.run(userInput);
-
-
-
 
     const textMsg = agentResult.output?.find(m => m.type === 'text');
     if (!textMsg || typeof textMsg.content !== 'string') {

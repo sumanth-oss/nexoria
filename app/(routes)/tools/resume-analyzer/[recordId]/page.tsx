@@ -22,44 +22,74 @@ function ResumeAnalyzer() {
   const [pdfUrl, setPdfUrl] = useState<string>();
   const [report, setReport] = useState<any>();
   const [openResumeDialog, setOpenResumeDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // State for dropdown sections
   const [isStrengthsOpen, setIsStrengthsOpen] = useState(true);
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
   const [isTipsOpen, setIsTipsOpen] = useState(false);
 
-// Inside your ResumeAnalyzer function
 useEffect(() => {
   if (!recordId) return;
 
+  let pollCount = 0;
+  const maxPolls = 60;
+  let intervalId: NodeJS.Timeout | null = null;
+
   const fetchData = async () => {
     try {
-      // Use a timestamp to bust cache
+      pollCount++;
       const result = await axios.get(`/api/history?recordId=${recordId}&t=${Date.now()}`);
       
-      // Look specifically for the content structure the AI provides
-      if (result.data?.content && result.data.content.overall_score) {
-        setPdfUrl(result.data.metaData);
-        setReport(result.data.content);
-        return true; // Success
+      if (result.data?.content && typeof result.data.content === 'object') {
+        if (Object.keys(result.data.content).length === 0) {
+          setIsLoading(true);
+          return false;
+        }
+        
+        if (result.data.content.overall_score !== undefined) {
+          setPdfUrl(result.data.metaData);
+          setReport(result.data.content);
+          setIsLoading(false);
+          setError(null);
+          if (intervalId) clearInterval(intervalId);
+          return true;
+        }
       }
+      
+      if (pollCount >= maxPolls) {
+        setIsLoading(false);
+        setError('Analysis is taking longer than expected. Please refresh the page or try again.');
+        if (intervalId) clearInterval(intervalId);
+        return true;
+      }
+      
+      return false;
     } catch (err) {
       console.error('Polling error:', err);
+      if (pollCount >= maxPolls) {
+        setIsLoading(false);
+        setError('Failed to fetch analysis results. Please refresh the page.');
+        if (intervalId) clearInterval(intervalId);
+        return true;
+      }
+      return false;
     }
-    return false; // Keep polling
   };
 
-  // Initial fetch
   fetchData();
 
-  // Poll every 3 seconds until report is found
-  const interval = setInterval(async () => {
+  intervalId = setInterval(async () => {
     const isDone = await fetchData();
-    if (isDone) clearInterval(interval);
+    if (isDone && intervalId) {
+      clearInterval(intervalId);
+    }
   }, 3000);
 
-  return () => clearInterval(interval);
-}, [recordId]); // Remove 'report' from dependencies to keep polling active until found
+  return () => {
+    if (intervalId) clearInterval(intervalId);
+  };
+}, [recordId]);
 
 
   const GetResumeAnalyzer = async () => {
@@ -75,18 +105,17 @@ useEffect(() => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400'; // Adjusted for dark background
-    if (score >= 60) return 'text-amber-400'; // Adjusted for dark background
-    return 'text-red-400'; // Adjusted for dark background
+    if (score >= 80) return 'text-green-400';
+    if (score >= 60) return 'text-amber-400';
+    return 'text-red-400';
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 80) return 'bg-green-900'; // Darker background for good score
-    if (score >= 60) return 'bg-amber-900'; // Darker background for medium score
-    return 'bg-red-900'; // Darker background for low score
+    if (score >= 80) return 'bg-green-900';
+    if (score >= 60) return 'bg-amber-900';
+    return 'bg-red-900';
   };
 
-  // Component for collapsible sections
   const CollapsibleSection = ({
     title,
     icon: Icon,
@@ -125,7 +154,7 @@ useEffect(() => {
                 className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
                 style={{ backgroundColor: dotColor }}
               />
-              <span className="text-gray-300">{item}</span> {/* Lighter text */}
+              <span className="text-gray-300">{item}</span>
             </div>
           ))}
         </div>
@@ -135,21 +164,13 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-gray-950 p-4">
-      {' '}
-      {/* Dark main background */}
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-5 grid-cols-1 gap-6">
-          {/* Report Section */}
           <div className="col-span-2 space-y-4">
             <div className="bg-gray-900 rounded-lg shadow-sm border border-gray-800 p-6">
-              {' '}
-              {/* Dark background, gray border */}
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-semibold text-xl text-white flex items-center gap-2">
-                  {' '}
-                  {/* White text */}
-                  <FileText className="w-5 h-5 text-amber-400" />{' '}
-                  {/* Amber icon */}
+                  <FileText className="w-5 h-5 text-amber-400" />
                   Resume Analysis Report
                 </h2>
                 <button
@@ -160,9 +181,29 @@ useEffect(() => {
                   Re Analyze
                 </button>
               </div>
+              
+              {isLoading && !report && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-gray-400">Analyzing your resume...</p>
+                  <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+                </div>
+              )}
+              
+              {error && !report && (
+                <div className="text-center py-12">
+                  <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                  <p className="text-red-400 mb-2">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-amber-500 text-gray-950 rounded-lg hover:bg-amber-600 transition-colors"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              )}
               {report && (
                 <div className="space-y-6">
-                  {/* Overall Score */}
                   <div className="text-center">
                     <div
                       className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${getScoreBgColor(
@@ -178,12 +219,9 @@ useEffect(() => {
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm mb-4">
-                      {' '}
-                      {/* Lighter gray text */}
                       Overall Score
                     </p>
 
-                    {/* Section Scores in smaller circles */}
                     {report.sections && (
                       <div className="flex justify-center gap-3 flex-wrap">
                         {Object.entries(report.sections).map(
@@ -204,8 +242,6 @@ useEffect(() => {
                                   </span>
                                 </div>
                                 <p className="text-xs text-gray-400 capitalize">
-                                  {' '}
-                                  {/* Lighter gray text */}
                                   {section.replace('_', ' ')}
                                 </p>
                               </div>
@@ -215,34 +251,25 @@ useEffect(() => {
                     )}
                   </div>
 
-                  {/* Summary */}
                   <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    {' '}
-                    {/* Dark background, gray border */}
                     <h3 className="font-medium text-white mb-2">
                       Summary
-                    </h3>{' '}
-                    {/* White text */}
+                    </h3>
                     <p className="text-gray-300 text-sm leading-relaxed">
-                      {' '}
-                      {/* Lighter text */}
                       {report.summary_comment}
                     </p>
                   </div>
 
-                  {/* Collapsible Sections */}
                   <div className="space-y-4">
-                    {/* Strengths */}
                     <CollapsibleSection
                       title="Strengths"
                       icon={CheckCircle}
                       items={report.whats_good}
                       isOpen={isStrengthsOpen}
                       onToggle={() => setIsStrengthsOpen(!isStrengthsOpen)}
-                      dotColor="#4ade80" // Green for strengths, adjusted for dark background
+                      dotColor="#4ade80"
                     />
 
-                    {/* Areas to Improve */}
                     <CollapsibleSection
                       title="Areas to Improve"
                       icon={AlertCircle}
@@ -251,49 +278,34 @@ useEffect(() => {
                       onToggle={() =>
                         setIsImprovementsOpen(!isImprovementsOpen)
                       }
-                      dotColor="#fbbf24" // Amber for improvements, adjusted for dark background
+                      dotColor="#fbbf24"
                     />
 
-                    {/* Improvement Tips */}
                     <CollapsibleSection
                       title="Improvement Tips"
                       icon={Lightbulb}
                       items={report.tips_for_improvement}
                       isOpen={isTipsOpen}
                       onToggle={() => setIsTipsOpen(!isTipsOpen)}
-                      dotColor="#f97316" // Orange for tips, adjusted for dark background
+                      dotColor="#f97316"
                     />
                   </div>
                 </div>
               )}
-              {!report && (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>{' '}
-                  {/* Amber spinner */}
-                  <p className="text-gray-400">Loading analysis...</p>{' '}
-                  {/* Lighter gray text */}
-                </div>
-              )}
+             
             </div>
           </div>
 
-          {/* PDF Preview Section */}
           <div className="col-span-3">
             <div className="bg-gray-900 rounded-lg shadow-sm border border-gray-800 p-6">
-              {' '}
-              {/* Dark background, gray border */}
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-xl text-white">
-                  {' '}
-                  {/* White text */}
                   Resume Preview
                 </h2>
                 {report && <DownloadReport report={report} />}
               </div>
               {pdfUrl ? (
                 <div className="bg-gray-800 rounded-lg overflow-hidden">
-                  {' '}
-                  {/* Darker background for iframe container */}
                   <iframe
                     src={pdfUrl + '#toolbar=0&navpanes=0&scrollbar=0'}
                     width="100%"
@@ -304,13 +316,9 @@ useEffect(() => {
                 </div>
               ) : (
                 <div className="bg-gray-800 rounded-lg h-[800px] flex items-center justify-center">
-                  {' '}
-                  {/* Darker background for loader */}
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>{' '}
-                    {/* Amber spinner */}
-                    <p className="text-gray-400">Loading resume...</p>{' '}
-                    {/* Lighter gray text */}
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading resume...</p>
                   </div>
                 </div>
               )}

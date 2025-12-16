@@ -1,7 +1,6 @@
 import { gemini } from '@inngest/agent-kit';
 import { createAgent } from '@inngest/agent-kit';
 
-
 export const aiCareerChatAgent = createAgent({
   name: 'AI Career Agent',
   description: 'An AI agent to help you with career-related questions',
@@ -21,13 +20,11 @@ Always respond in a friendly, professional, and concise manner. Use plain, helpf
 If the question is unclear, politely ask for more context to provide better help.
 `,
   model: gemini({
-    model: 'gemini-pro',
+    model: 'gemini-2.0-flash',
     apiKey: process.env.GEMINI_API_KEY!,
+    baseUrl: 'https://generativelanguage.googleapis.com/v1/',
   }),
 });
-
-
-//  Resume analyzer agent
 
 export const AiResumeAgent = createAgent({
   name: 'ResumeAnalyzer',
@@ -134,13 +131,11 @@ json Copy Edit
 resume Plain text input Input 
 `,
   model: gemini({
-    model: 'gemini-pro',
+    model: 'gemini-2.0-flash',
     apiKey: process.env.GEMINI_API_KEY!,
+    baseUrl: 'https://generativelanguage.googleapis.com/v1/',
   }),
 });
-
-
-// RoadMap Genrator Agent
 
 export const AiRoadMapAgent = createAgent({
   name: 'AiRoadMapGeneratorAgent',
@@ -192,7 +187,8 @@ CRITICAL:
 - Generate at least 8-12 nodes for a comprehensive roadmap
 - Create proper edge connections between related nodes`,
   model: gemini({
-    model: 'gemini-pro',
+    model: 'gemini-2.0-flash',
     apiKey: process.env.GEMINI_API_KEY!,
+    baseUrl: 'https://generativelanguage.googleapis.com/v1/',
   }),
 });
