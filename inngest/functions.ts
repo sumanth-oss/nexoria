@@ -1,4 +1,4 @@
-import { gemini } from 'inngest';
+import { gemini } from '@inngest/agent-kit';
 import { inngest } from './client';
 import { createAgent } from '@inngest/agent-kit';
 import ImageKit from 'imagekit';
@@ -56,7 +56,7 @@ export const aiCareerChat = inngest.createFunction(
       throw new Error('userInput is required and must be a non-empty string.');
     }
 
-    // ✅ Directly call Gemini agent (no nesting)
+    //  Directly call Gemini agent (no nesting)
     const result = await aiCareerChatAgent.run(userInput);
 
     // (Optional) log or track this step
