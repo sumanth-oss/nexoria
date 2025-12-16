@@ -1,3 +1,4 @@
+// app\(routes)\tools\chat\[chatId]\page.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -25,55 +26,57 @@ function AiChat() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
 
-  async function onSend() {
-    if (loading || !userInput.trim()) return;
-    setLoading(true);
+async function onSend() {
+  if (loading || !userInput.trim()) return;
+  setLoading(true);
 
-    const userMsg = {
-      content: userInput,
-      role: 'user',
+  const userMsg = { content: userInput, role: 'user', type: 'text' };
+  
+  // Show user message in UI immediately
+  setMessageList(prev => [...prev, userMsg]);
+  const currentInput = userInput;
+  setUserInput('');
+
+  try {
+    // 1. Trigger the background AI process
+    await axios.post('/api/chat-agent', {
+      userInput: currentInput,
+      chatId,
+    });
+
+    // 2. Poll the database until the AI reply shows up
+    let attempts = 0;
+    const maxAttempts = 15; // Poll for 30 seconds total (15 * 2s)
+    
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      const result = await axios.get('/api/history?recordId=' + chatId);
+      const messages = result.data?.content || [];
+      
+      // Check if the latest message is from the assistant
+      if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+        setMessageList(messages);
+        setLoading(false);
+        clearInterval(pollInterval);
+      }
+
+      if (attempts >= maxAttempts) {
+        setLoading(false);
+        clearInterval(pollInterval);
+      }
+    }, 2000); // Check every 2 seconds
+
+  } catch (err) {
+    console.error(err);
+    setLoading(false);
+    setMessageList(prev => [...prev, {
+      content: 'Error: Connection lost.',
+      role: 'assistant',
       type: 'text',
-    };
-
-    const updatedList = [...messageList, userMsg];
-    setMessageList(updatedList);
-    const currentInput = userInput; // Capture userInput before clearing
-    setUserInput('');
-
-    // Reset textarea height immediately
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.rows = 1;
-    }
-
-    try {
-      const res = await axios.post('/api/chat-agent', {
-        userInput: currentInput, // Use the captured userInput
-      });
-
-      const agentResponse = res.data;
-      const finalList = [...updatedList, agentResponse];
-      setMessageList(finalList);
-
-      await axios.put('/api/history', {
-        content: finalList,
-        recordId: chatId,
-      });
-    } catch (err) {
-      console.error(err);
-      setMessageList((prev) => [
-        ...prev,
-        {
-          content:
-            'Error: Could not get a response from the AI. Please try again.',
-          role: 'assistant',
-          type: 'text',
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+    }]);
   }
+}
+
 
   useEffect(() => {
     if (chatId) {
@@ -89,7 +92,7 @@ function AiChat() {
   }, [messageList]);
 
   useEffect(() => {
-    // Adjust textarea height dynamically based on content
+   
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'; // Reset height to recalculate
       textareaRef.current.style.height =
@@ -97,7 +100,6 @@ function AiChat() {
     }
   }, [userInput]);
 
-  // New useEffect to ensure input box is visible on initial load
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputContainerRef.current) {

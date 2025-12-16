@@ -1,66 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf';
 import { inngest } from '@/inngest/client';
 import { currentUser } from '@clerk/nextjs/server';
-import { getRuns } from '@/lib/inngest/getRuns'; // ✅ IMPORT instead of defining
+import pdf from 'pdf-parse';
+import { db } from '@/configs/db';
+import { HistoryTable, usersTable } from '@/configs/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
-  const FormData = await req.formData();
-  const resumeFile: any = FormData.get('resumeFile');
-  const recordId = FormData.get('recordId');
-  const user = await currentUser();
-
-  const loader = new WebPDFLoader(resumeFile);
-  const docs = await loader.load();
-
-  const arrayBuffer = await resumeFile.arrayBuffer();
-  const base64 = Buffer.from(arrayBuffer).toString('base64');
-
   try {
-    const result = await inngest.send({
-      name: 'AiResumeAnalyzer',
-      data: {
-        recordId,
-        base64ResumeFile: base64,
-        pdfText: docs[0]?.pageContent,
-        aiAgentType: '/tools/resume-analyzer',
-        // @ts-ignore
-        userEmail: user.primaryEmailAddress?.emailAddress,
-      },
-    });
+    const formData = await req.formData();
+    const resumeFile = formData.get('resumeFile') as File;
+    const recordId = formData.get('recordId') as string;
+    const user = await currentUser();
 
-    const runId = result.ids?.[0];
-    if (!runId) {
+    if (!resumeFile || !recordId) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
+    if (!userEmail) {
+      return NextResponse.json({ error: 'User email required' }, { status: 401 });
+    }
+
+    // ✅ ensure FK user exists
+    const existingUser = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, userEmail));
+
+    if (!existingUser.length) {
+      await db.insert(usersTable).values({
+        email: userEmail,
+        name: user.fullName || 'User',
+      });
+    }
+
+    const buffer = Buffer.from(await resumeFile.arrayBuffer());
+    const parsed = await pdf(buffer);
+
+    if (!parsed.text?.trim()) {
       return NextResponse.json(
-        { error: 'Event ID not found' },
-        { status: 500 }
+        { error: 'Unable to read PDF text' },
+        { status: 400 }
       );
     }
 
-    let runStatus;
-    while (true) {
-      runStatus = await getRuns(runId);
-      const status = runStatus?.data?.[0]?.status;
+    // ✅ placeholder insert
+    await db.insert(HistoryTable).values({
+      recordId,
+      content: {},
+      aiAgentType: '/tools/resume-analyzer',
+      userEmail,
+      createdAt: new Date().toISOString(),
+    });
 
-      if (status === 'Completed') break;
-      if (status === 'Failed') {
-        return NextResponse.json(
-          { error: 'Function failed to complete' },
-          { status: 500 }
-        );
-      }
+    await inngest.send({
+      name: 'AiResumeAnalyzer',
+      data: {
+        recordId,
+        pdfText: parsed.text,
+        base64ResumeFile: buffer.toString('base64'),
+        aiAgentType: '/tools/resume-analyzer',
+        userEmail,
+      },
+    });
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-
-    return NextResponse.json(
-      runStatus.data?.[0]?.output?.result?.output?.[0] || 'No response'
-    );
-  } catch (err: any) {
-    console.error('Error in POST handler:', err.message || err);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -6,9 +6,9 @@ import React, { useEffect, useState } from 'react';
 import {
   CheckCircle,
   AlertCircle,
-  TrendingUp,
+
   FileText,
-  Star,
+ 
   Lightbulb,
   SparklesIcon,
   ChevronDown,
@@ -28,11 +28,39 @@ function ResumeAnalyzer() {
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
   const [isTipsOpen, setIsTipsOpen] = useState(false);
 
-  useEffect(() => {
-    if (recordId) {
-      GetResumeAnalyzer();
+// Inside your ResumeAnalyzer function
+useEffect(() => {
+  if (!recordId) return;
+
+  const fetchData = async () => {
+    try {
+      // Use a timestamp to bust cache
+      const result = await axios.get(`/api/history?recordId=${recordId}&t=${Date.now()}`);
+      
+      // Look specifically for the content structure the AI provides
+      if (result.data?.content && result.data.content.overall_score) {
+        setPdfUrl(result.data.metaData);
+        setReport(result.data.content);
+        return true; // Success
+      }
+    } catch (err) {
+      console.error('Polling error:', err);
     }
-  }, [recordId]);
+    return false; // Keep polling
+  };
+
+  // Initial fetch
+  fetchData();
+
+  // Poll every 3 seconds until report is found
+  const interval = setInterval(async () => {
+    const isDone = await fetchData();
+    if (isDone) clearInterval(interval);
+  }, 3000);
+
+  return () => clearInterval(interval);
+}, [recordId]); // Remove 'report' from dependencies to keep polling active until found
+
 
   const GetResumeAnalyzer = async () => {
     try {
