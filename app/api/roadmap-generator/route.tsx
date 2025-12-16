@@ -1,51 +1,48 @@
 import { inngest } from '@/inngest/client';
 import { currentUser } from '@clerk/nextjs/server';
-import { getRuns } from '@/lib/inngest/getRuns'; // ✅ Import here
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/configs/db';
+import { HistoryTable } from '@/configs/schema';
+import { roadmapRequestSchema } from '@/lib/validations';
 
 export async function POST(req: NextRequest) {
-  const { roadMapId, userInput } = await req.json();
-  const user = await currentUser();
-
   try {
-    const result = await inngest.send({
+    const user = await currentUser();
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: 'User email required' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const validated = roadmapRequestSchema.parse(body);
+
+    await db.insert(HistoryTable).values({
+      recordId: validated.roadMapId,
+      content: {},
+      aiAgentType: '/tools/roadmap-generator',
+      userEmail,
+      createdAt: new Date().toISOString(),
+    });
+
+    await inngest.send({
       name: 'AiRoadMapAgent',
       data: {
-        userInput,
-        roadMapId,
-        userEmail: user?.primaryEmailAddress?.emailAddress,
+        userInput: validated.userInput,
+        roadMapId: validated.roadMapId,
+        userEmail,
       },
     });
 
-    const runId = result.ids?.[0];
-    if (!runId) {
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Event ID not found' },
-        { status: 500 }
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
       );
     }
-
-    let runStatus;
-    while (true) {
-      runStatus = await getRuns(runId);
-      const status = runStatus?.data?.[0]?.status;
-
-      if (status === 'Completed') break;
-      if (status === 'Failed') {
-        return NextResponse.json(
-          { error: 'Function failed to complete' },
-          { status: 500 }
-        );
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-
-    return NextResponse.json(
-      runStatus.data?.[0]?.output?.result?.output?.[0] || 'No response'
-    );
-  } catch (err: any) {
-    console.error('Error in POST handler:', err.message || err);
+    console.error('Error in POST handler:', error.message || error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

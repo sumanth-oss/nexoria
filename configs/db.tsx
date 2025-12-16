@@ -1,2 +1,13 @@
+// configs/db.tsx
+import 'dotenv/config'; // MUST be first
+
+import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-export const db = drizzle(process.env.NEXT_PUBLIC_NEON_DB_CONNECTION_STRING!);
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is missing');
+}
+
+const sql = neon(process.env.DATABASE_URL);
+
+export const db = drizzle(sql);

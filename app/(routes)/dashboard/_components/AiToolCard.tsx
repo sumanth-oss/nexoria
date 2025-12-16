@@ -43,6 +43,21 @@ function AiToolCard({ tool }: AIToolProps) {
       return;
     }
 
+    if (tool.path === '/tools/chat') {
+      const id = uuidv4();
+      setLoading(true);
+      router.push(`${tool.path}/${id}`);
+      axios
+        .post('/api/history', {
+          recordId: id,
+          content: [],
+          aiAgentType: tool.path,
+        })
+        .catch((error) => console.error('Error creating chat history:', error))
+        .finally(() => setLoading(false));
+      return;
+    }
+
     try {
       setLoading(true);
       const id = uuidv4();
@@ -112,11 +127,8 @@ function AiToolCard({ tool }: AIToolProps) {
         >
           {loading ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {' '}
-              {/* Adjusted gap */}
               <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>{' '}
-              {/* Adjusted loader size */}
-              <span>Processing...</span>
+              <span>Opening...</span>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-1.5 sm:gap-2">

@@ -64,8 +64,17 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  } catch (err: any) {
+    console.error('Resume analyzer error:', err);
+    if (err.name === 'ZodError') {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: err.errors },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: err.message || 'Server error' },
+      { status: 500 }
+    );
   }
 }

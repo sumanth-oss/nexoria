@@ -28,7 +28,6 @@ function History() {
     try {
       setLoading(true);
       const result = await axios.get('/api/history');
-      // Sort history by creation date (newest first) and then take the latest 6 for dashboard display
       const sortedHistory = result.data
         ? result.data.sort(
             (a: HistoryItem, b: HistoryItem) =>

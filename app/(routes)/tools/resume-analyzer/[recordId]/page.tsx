@@ -1,14 +1,11 @@
 'use client';
 
-import axios from 'axios';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   CheckCircle,
   AlertCircle,
-
   FileText,
- 
   Lightbulb,
   SparklesIcon,
   ChevronDown,
@@ -16,107 +13,75 @@ import {
 } from 'lucide-react';
 import ResumeUploadDialog from '@/app/(routes)/dashboard/_components/ResumeUploadDialog';
 import DownloadReport from '@/app/(routes)/dashboard/_components/DownloadReport';
+import { usePolling } from '@/hooks/usePolling';
+
+interface ResumeReport {
+  overall_score: number;
+  overall_feedback: string;
+  summary_comment: string;
+  sections: {
+    contact_info?: { score: number; comment?: string };
+    experience?: { score: number; comment?: string };
+    education?: { score: number; comment?: string };
+    skills?: { score: number; comment?: string };
+  };
+  tips_for_improvement?: string[];
+  whats_good?: string[];
+  needs_improvement?: string[];
+}
 
 function ResumeAnalyzer() {
   const { recordId } = useParams();
-  const [pdfUrl, setPdfUrl] = useState<string>();
-  const [report, setReport] = useState<any>();
   const [openResumeDialog, setOpenResumeDialog] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [isStrengthsOpen, setIsStrengthsOpen] = useState(true);
   const [isImprovementsOpen, setIsImprovementsOpen] = useState(false);
   const [isTipsOpen, setIsTipsOpen] = useState(false);
 
-useEffect(() => {
-  if (!recordId) return;
-
-  let pollCount = 0;
-  const maxPolls = 60;
-  let intervalId: NodeJS.Timeout | null = null;
-
-  const fetchData = async () => {
-    try {
-      pollCount++;
-      const result = await axios.get(`/api/history?recordId=${recordId}&t=${Date.now()}`);
-      
-      if (result.data?.content && typeof result.data.content === 'object') {
-        if (Object.keys(result.data.content).length === 0) {
-          setIsLoading(true);
-          return false;
-        }
-        
-        if (result.data.content.overall_score !== undefined) {
-          setPdfUrl(result.data.metaData);
-          setReport(result.data.content);
-          setIsLoading(false);
-          setError(null);
-          if (intervalId) clearInterval(intervalId);
-          return true;
-        }
+  const { data: pollData, isLoading, error } = usePolling<{
+    report: ResumeReport;
+    pdfUrl: string | null;
+  }>({
+    recordId: recordId as string,
+    interval: 2000,
+    maxAttempts: 60,
+    checkFn: (data) => {
+      if (!data?.content || typeof data.content !== 'object') return null;
+      const keys = Object.keys(data.content);
+      if (keys.length === 0) return null;
+      if (data.content.overall_score !== undefined) {
+        return {
+          report: data.content as ResumeReport,
+          pdfUrl: data.metaData || null,
+        };
       }
-      
-      if (pollCount >= maxPolls) {
-        setIsLoading(false);
-        setError('Analysis is taking longer than expected. Please refresh the page or try again.');
-        if (intervalId) clearInterval(intervalId);
-        return true;
-      }
-      
-      return false;
-    } catch (err) {
-      console.error('Polling error:', err);
-      if (pollCount >= maxPolls) {
-        setIsLoading(false);
-        setError('Failed to fetch analysis results. Please refresh the page.');
-        if (intervalId) clearInterval(intervalId);
-        return true;
-      }
-      return false;
-    }
-  };
+      return null;
+    },
+  });
 
-  fetchData();
-
-  intervalId = setInterval(async () => {
-    const isDone = await fetchData();
-    if (isDone && intervalId) {
-      clearInterval(intervalId);
-    }
-  }, 3000);
-
-  return () => {
-    if (intervalId) clearInterval(intervalId);
-  };
-}, [recordId]);
+  const report = pollData?.report;
+  const pdfUrl = pollData?.pdfUrl;
 
 
-  const GetResumeAnalyzer = async () => {
-    try {
-      const result = await axios.get('/api/history?recordId=' + recordId);
-      if (result.data) {
-        setPdfUrl(result.data.metaData);
-        setReport(result.data.content);
-      }
-    } catch (error) {
-      console.error('Error fetching resume analysis:', error);
-    }
-  };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-amber-400';
-    return 'text-red-400';
-  };
+  const getScoreColor = useMemo(
+    () => (score: number) => {
+      if (score >= 80) return 'text-green-400';
+      if (score >= 60) return 'text-amber-400';
+      return 'text-red-400';
+    },
+    []
+  );
 
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return 'bg-green-900';
-    if (score >= 60) return 'bg-amber-900';
-    return 'bg-red-900';
-  };
+  const getScoreBgColor = useMemo(
+    () => (score: number) => {
+      if (score >= 80) return 'bg-green-900';
+      if (score >= 60) return 'bg-amber-900';
+      return 'bg-red-900';
+    },
+    []
+  );
 
-  const CollapsibleSection = ({
+  const CollapsibleSection = React.memo(({
     title,
     icon: Icon,
     items,
@@ -125,7 +90,7 @@ useEffect(() => {
     dotColor,
   }: {
     title: string;
-    icon: any;
+    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
     items: string[];
     isOpen: boolean;
     onToggle: () => void;
@@ -160,7 +125,9 @@ useEffect(() => {
         </div>
       )}
     </div>
-  );
+  ));
+
+  CollapsibleSection.displayName = 'CollapsibleSection';
 
   return (
     <div className="min-h-screen bg-gray-950 p-4">
@@ -264,7 +231,7 @@ useEffect(() => {
                     <CollapsibleSection
                       title="Strengths"
                       icon={CheckCircle}
-                      items={report.whats_good}
+                      items={report.whats_good || []}
                       isOpen={isStrengthsOpen}
                       onToggle={() => setIsStrengthsOpen(!isStrengthsOpen)}
                       dotColor="#4ade80"
@@ -273,7 +240,7 @@ useEffect(() => {
                     <CollapsibleSection
                       title="Areas to Improve"
                       icon={AlertCircle}
-                      items={report.needs_improvement}
+                      items={report.needs_improvement || []}
                       isOpen={isImprovementsOpen}
                       onToggle={() =>
                         setIsImprovementsOpen(!isImprovementsOpen)
@@ -284,7 +251,7 @@ useEffect(() => {
                     <CollapsibleSection
                       title="Improvement Tips"
                       icon={Lightbulb}
-                      items={report.tips_for_improvement}
+                      items={report.tips_for_improvement || []}
                       isOpen={isTipsOpen}
                       onToggle={() => setIsTipsOpen(!isTipsOpen)}
                       dotColor="#f97316"

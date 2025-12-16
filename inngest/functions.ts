@@ -142,31 +142,67 @@ export const AiResumeAnalyzer = inngest.createFunction(
 );
 
 export const AiRoadMapInngestFunction = inngest.createFunction(
-  { id: 'AiRoadMapAgent' },
+  { id: 'AiRoadMapAgent', retries: 3 },
   { event: 'AiRoadMapAgent' },
   async ({ event, step }) => {
     const { roadMapId, userInput, userEmail } = event.data;
 
-   const agentResult = await AiRoadMapAgent.run(userInput);
-
-    const textMsg = agentResult.output?.find(m => m.type === 'text');
-    if (!textMsg || typeof textMsg.content !== 'string') {
-      throw new Error('Invalid roadmap agent output');
+    if (!userInput?.trim()) {
+      throw new Error('User input is empty or invalid');
     }
 
-    const json = JSON.parse(
-      textMsg.content.replace(/```json|```/g, '').trim()
-    );
+    const agentResult = await AiRoadMapAgent.run(userInput);
 
-    await step.run('save-roadmap', () =>
-      db.insert(HistoryTable).values({
-        recordId: roadMapId,
-        content: json,
-        aiAgentType: '/tools/roadmap-generator',
-        createdAt: new Date().toISOString(),
-        userEmail,
-        metaData: userInput,
-      })
-    );
+    const textMsg = agentResult.output?.find(m => m.type === 'text');
+    if (!textMsg) {
+      throw new Error('No text message found in AI output');
+    }
+
+    let rawText = '';
+    if (typeof textMsg.content === 'string') {
+      rawText = textMsg.content;
+    } else if (Array.isArray(textMsg.content)) {
+      rawText = textMsg.content
+        .map((c: any) => (typeof c === 'string' ? c : c?.text || ''))
+        .join('');
+    } else {
+      throw new Error('Invalid content format in AI response');
+    }
+
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    if (!cleaned) {
+      throw new Error('Empty response after cleaning');
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error('JSON parse error. Raw text:', cleaned.substring(0, 500));
+      throw new Error(
+        `Failed to parse JSON: ${
+          parseError instanceof Error ? parseError.message : 'Unknown error'
+        }`
+      );
+    }
+
+    if (!json.roadmapTitle && !json.initialNodes) {
+      throw new Error('Invalid JSON structure: missing roadmapTitle or initialNodes');
+    }
+
+    await step.run('save-roadmap', async () => {
+      await db
+        .update(HistoryTable)
+        .set({
+          content: json,
+          aiAgentType: '/tools/roadmap-generator',
+          userEmail,
+          createdAt: new Date().toISOString(),
+          metaData: userInput,
+        })
+        .where(eq(HistoryTable.recordId, roadMapId));
+    });
+
+    return { success: true, roadMapId };
   }
 );

@@ -32,19 +32,20 @@ function RoadMapGeneratorDialog({
   }
 
   async function handleGenerateRoadmap() {
+    if (!userInput.trim() || loading) return;
+    
     setLoading(true);
     const roadMapId = uuidv4();
 
     try {
-      const result = await axios.post('/api/roadmap-generator', {
+      await axios.post('/api/roadmap-generator', {
         roadMapId,
         userInput: userInput.trim(),
       });
 
-      setLoading(false);
-      router.push(`/tools/roadmap-generator/${roadMapId}`);
       setOpenRoadMapDialog(false);
       setUserInput('');
+      router.push(`/tools/roadmap-generator/${roadMapId}`);
     } catch (error) {
       console.error('Error generating roadmap:', error);
       setLoading(false);

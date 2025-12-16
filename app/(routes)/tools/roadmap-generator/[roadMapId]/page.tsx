@@ -1,25 +1,51 @@
-// RoadMapGenerator.tsx
 'use client';
 import { Button } from '@/components/ui/button';
-import axios from 'axios';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import RoadMapCanvas from '../_component/RoadMapCanvas';
 import RoadMapGeneratorDialog from '@/app/(routes)/dashboard/_components/RoadMapGeneratorDialog';
+import { usePolling } from '@/hooks/usePolling';
+
+interface RoadmapData {
+  roadmapTitle: string;
+  description: string;
+  duration: string;
+  initialNodes: Array<{
+    id: string;
+    type: string;
+    position: { x: number; y: number };
+    data: { title: string; description: string; link: string };
+  }>;
+  initialEdges: Array<{
+    id: string;
+    source: string;
+    target: string;
+  }>;
+}
 
 function RoadMapGenerator() {
   const { roadMapId } = useParams();
-  const [roadMapDetail, setRoadMapDetails] = useState<any>();
   const [openRoadMapDialog, setOpenRoadMapDialog] = useState(false);
 
-  useEffect(() => {
-    roadMapId && GetRoadMapDetails();
-  }, [roadMapId]);
-
-  const GetRoadMapDetails = async () => {
-    const result = await axios.get('/api/history?recordId=' + roadMapId);
-    setRoadMapDetails(result.data?.content);
-  };
+  const { data: roadMapDetail, isLoading, error } = usePolling<RoadmapData>({
+    recordId: roadMapId as string,
+    interval: 2000,
+    maxAttempts: 60,
+    checkFn: (data) => {
+      if (!data?.content || typeof data.content !== 'object') return null;
+      const keys = Object.keys(data.content);
+      if (keys.length === 0) return null;
+      const hasRoadmapData =
+        data.content.roadmapTitle ||
+        data.content.initialNodes ||
+        (Array.isArray(data.content.initialNodes) &&
+          data.content.initialNodes.length > 0);
+      if (hasRoadmapData) {
+        return data.content as RoadmapData;
+      }
+      return null;
+    },
+  });
 
   return (
     // Main container: full height, responsive padding, dark gradient background
@@ -76,20 +102,29 @@ function RoadMapGenerator() {
           {/* Responsive padding, flex column for inner content */}
           {roadMapDetail?.initialNodes ? (
             <div className="w-full h-[60vh] sm:h-[70vh] md:h-full min-h-[400px]">
-              {' '}
-              {/* Responsive height for canvas container, min-height to prevent it from collapsing */}
               <RoadMapCanvas
                 initialNodes={roadMapDetail?.initialNodes}
                 initialEdges={roadMapDetail?.initialEdges}
               />
             </div>
+          ) : error ? (
+            <div className="w-full h-[60vh] sm:h-[70vh] md:h-full min-h-[400px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-red-400 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-amber-500 text-gray-950 rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  Refresh Page
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="w-full h-[60vh] sm:h-[70vh] md:h-full min-h-[400px] flex items-center justify-center">
-              {' '}
-              {/* Same responsive height for loader */}
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
                 <p className="text-gray-400">Generating roadmap...</p>
+                <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
               </div>
             </div>
           )}

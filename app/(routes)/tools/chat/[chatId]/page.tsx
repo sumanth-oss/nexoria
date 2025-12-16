@@ -44,27 +44,39 @@ async function onSend() {
       chatId,
     });
 
-    // 2. Poll the database until the AI reply shows up
     let attempts = 0;
-    const maxAttempts = 15; // Poll for 30 seconds total (15 * 2s)
+    const maxAttempts = 20;
     
     const pollInterval = setInterval(async () => {
-      attempts++;
-      const result = await axios.get('/api/history?recordId=' + chatId);
-      const messages = result.data?.content || [];
-      
-      // Check if the latest message is from the assistant
-      if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
-        setMessageList(messages);
-        setLoading(false);
-        clearInterval(pollInterval);
-      }
+      try {
+        attempts++;
+        const result = await axios.get(`/api/history?recordId=${chatId}&t=${Date.now()}`);
+        const messages = result.data?.content || [];
+        
+        if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+          setMessageList(messages);
+          setLoading(false);
+          clearInterval(pollInterval);
+          return;
+        }
 
-      if (attempts >= maxAttempts) {
-        setLoading(false);
-        clearInterval(pollInterval);
+        if (attempts >= maxAttempts) {
+          setLoading(false);
+          clearInterval(pollInterval);
+          setMessageList(prev => [...prev, {
+            content: 'Response is taking longer than expected. Please try again.',
+            role: 'assistant',
+            type: 'text',
+          }]);
+        }
+      } catch (pollError) {
+        console.error('Polling error:', pollError);
+        if (attempts >= maxAttempts) {
+          setLoading(false);
+          clearInterval(pollInterval);
+        }
       }
-    }, 2000); // Check every 2 seconds
+    }, 1500);
 
   } catch (err) {
     console.error(err);
