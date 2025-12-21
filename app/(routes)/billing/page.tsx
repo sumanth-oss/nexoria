@@ -14,10 +14,10 @@ function Billing() {
       </p>
       <div className="mt-6 w-full max-w-5xl">
         {' '}
-        {/* Added max-width for better layout on larger screens */}
+        
         <PricingTable
           appearance={{
-            baseTheme: dark, // Start with Clerk's dark theme
+            baseTheme: dark, 
 
             variables: {
               colorPrimary: 'hsl(260 90% 70%)', // Your vibrant purple
